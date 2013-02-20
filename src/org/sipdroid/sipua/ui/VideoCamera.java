@@ -407,20 +407,28 @@ public class VideoCamera extends CallScreen implements SipdroidListener,
 					int cameraCount = 0;
 					Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
 					cameraCount = Camera.getNumberOfCameras();
-					
+
+					// Make sure that you open the right camera
 					for (int camIdx = 0; camIdx < cameraCount; camIdx++) {
 						Camera.getCameraInfo(camIdx, cameraInfo);
 						if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
 							try {
 								mCamera = Camera.open(camIdx);
 							} catch (RuntimeException e) {
-								Log.e(TAG, "Camera failed to open: " + e.getLocalizedMessage());
+								Log.e(TAG,
+										"Camera failed to open: "
+												+ e.getLocalizedMessage());
 							}
 						}
-					}	
+					}
+				} else {
+					Camera.Parameters parameters = mCamera.getParameters();
+					parameters.set("camera-id", 2); // I'm going to assume that
+													// they have a front and
+													// back camera and choose
+													// the front camera for them
+					mCamera.setParameters(parameters);
 				}
-				
-				// mCamera = Camera.open();
 
 				// Keep trying to open up the camera with a one second pause
 				// each iteration
@@ -436,26 +444,10 @@ public class VideoCamera extends CallScreen implements SipdroidListener,
 					}
 
 				}
-
 				Log.d(TAG, "Camera is no longer null");
 
-				// If we have access to the new API we can call get number of
-				// cameras and get the correct camera
-				//if (Integer.parseInt(Build.VERSION.SDK) >= 9) {
-				//	Log.d(TAG, "SDK Version 9");
-					//Camera.Parameters parameters = mCamera.getParameters();
-					//@SuppressWarnings("static-access")
-					//int numberOfCameras = mCamera.getNumberOfCameras();
-					//parameters.set("camera-id", numberOfCameras);
-					//mCamera.setParameters(parameters);
-				//} else {
-				//	Camera.Parameters parameters = mCamera.getParameters();
-				//	parameters.set("camera-id", 2); // I'm going to assume that
-													// they have a front and
-													// back camera and choose
-													// the front camera for them
-				//	mCamera.setParameters(parameters);
-				//}
+				// Set the orientation of the camera once it is open
+				mCamera.setDisplayOrientation(0);
 			}
 
 			VideoCameraNew.unlock(mCamera);
@@ -490,8 +482,6 @@ public class VideoCamera extends CallScreen implements SipdroidListener,
 		return true;
 	}
 
-	
-		
 	private void releaseMediaRecorder() {
 		Log.v(TAG, "Releasing media recorder.");
 		if (mMediaRecorder != null) {
